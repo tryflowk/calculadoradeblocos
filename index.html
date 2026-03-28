@@ -1,44 +1,34 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- Google tag (gtag.js) -->
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3JPDEVV0BX"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-3JPDEVV0BX');
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- SEO: título e descrição -->
+<!-- SEO -->
 <title>Calculadora de Blocos de Concreto | Desenho por Fiada e Visualização 3D</title>
-
 <meta name="description" content="Calcule e desenhe sua parede de blocos de concreto fiada por fiada, veja em 3D e gere relatório. Ferramenta gratuita e online — sem cadastro, sem instalação.">
-
-<!-- Palavras-chave (ainda ajudam em buscadores menores) -->
 <meta name="keywords" content="calculadora de blocos, blocos de concreto, calcular blocos, quantos blocos, fiada, alvenaria, parede de bloco, muro de bloco, planta de alvenaria, 3D, construção, autoconstrução, pedreiro, engenharia civil">
-
-<!-- Autor e idioma -->
 <meta name="author" content="tryflowk">
 <meta name="language" content="pt-BR">
-<html lang="pt-BR"> <!-- coloque este atributo na própria tag <html> -->
-
-<!-- Open Graph (WhatsApp, Facebook, LinkedIn mostram preview bonito) -->
+<!-- Open Graph -->
 <meta property="og:title" content="Calculadora de Blocos de Concreto — Desenhe fiada por fiada e veja em 3D">
 <meta property="og:description" content="Ferramenta gratuita para planejar paredes de bloco: desenhe cada fiada, conte os blocos automaticamente e visualize em 3D. Online, sem cadastro.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://tryflowk.github.io/calculadoradeblocos/">
 <meta property="og:image" content="https://tryflowk.github.io/calculadoradeblocos/preview.png">
 <meta property="og:locale" content="pt_BR">
-
 <!-- Twitter/X card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Calculadora de Blocos de Concreto — Desenho por Fiada + 3D">
 <meta name="twitter:description" content="Planeje sua parede bloco a bloco, fiada por fiada. Visualize em 3D e gere relatório. Grátis e online.">
 <meta name="twitter:image" content="https://tryflowk.github.io/calculadoradeblocos/preview.png">
-
 <!-- Indexação -->
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://tryflowk.github.io/calculadoradeblocos/">
@@ -123,10 +113,72 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:
 #v3d-bar .v3i{font-size:11px;color:var(--dim)}
 #v3d-canvas{flex:1;overflow:hidden}
 #v3d-canvas canvas{display:block;width:100%!important;height:100%!important}
+
+/* ====== MOBILE OVERLAY ====== */
+#mobile-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:30px;
+  text-align:center;
+}
+#mobile-overlay.show{display:flex}
+#mobile-overlay .mob-icon{font-size:64px;margin-bottom:20px}
+#mobile-overlay h2{
+  font-size:22px;font-weight:800;color:var(--acc);
+  margin-bottom:12px;line-height:1.3;
+}
+#mobile-overlay p{
+  font-size:15px;color:var(--dim);line-height:1.6;
+  max-width:400px;margin-bottom:24px;
+}
+#mobile-overlay .mob-features{
+  text-align:left;max-width:320px;margin-bottom:28px;
+}
+#mobile-overlay .mob-features li{
+  font-size:13px;color:var(--txt);padding:4px 0;
+  list-style:none;
+}
+#mobile-overlay .mob-features li::before{
+  content:'✓ ';color:var(--acc);font-weight:700;
+}
+#mobile-overlay .mob-btn{
+  background:var(--acc);color:#000;border:none;
+  padding:12px 28px;border-radius:8px;
+  font-size:14px;font-weight:700;cursor:pointer;
+  margin-bottom:12px;
+  font-family:inherit;
+}
+#mobile-overlay .mob-btn:active{opacity:.8}
+#mobile-overlay .mob-link{
+  color:var(--dim);font-size:12px;cursor:pointer;
+  text-decoration:underline;border:none;background:none;
+  font-family:inherit;
+}
+
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px}
 </style>
 </head>
 <body>
+
+<!-- MOBILE OVERLAY -->
+<div id="mobile-overlay">
+  <div class="mob-icon">🧱</div>
+  <h2>Calculadora de Blocos<br>de Concreto</h2>
+  <p>Esta ferramenta foi feita para usar no <strong style="color:var(--txt)">computador</strong>, com mouse e teclado.</p>
+  <ul class="mob-features">
+    <li>Desenhe paredes bloco por bloco</li>
+    <li>Snap magnético com argamassa</li>
+    <li>Medidas automáticas de parede</li>
+    <li>Visualização 3D da construção</li>
+    <li>Contagem total para compra</li>
+  </ul>
+  <button class="mob-btn" onclick="window.open('https://tryflowk.github.io/calculadoradeblocos/','_blank')">🖥️ Enviar link para o computador</button>
+  <button class="mob-link" onclick="dismissMobile()">Continuar mesmo assim →</button>
+</div>
 
 <div class="hdr">
   <div class="logo">▧ Calculadora de Blocos</div>
@@ -210,6 +262,15 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:
 </div>
 
 <script>
+// ====== MOBILE DETECTION ======
+(function(){
+  const isMobile=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+    || (window.innerWidth<=768 && 'ontouchstart' in window);
+  if(isMobile) document.getElementById('mobile-overlay').classList.add('show');
+})();
+function dismissMobile(){document.getElementById('mobile-overlay').classList.remove('show')}
+
+// ====== BLOCKS ======
 const BK=[
   {id:'int14',  name:'Inteiro 14',     w:39,d:14,h:19,color:'#8B7355'},
   {id:'meio14', name:'Meio 14',        w:19,d:14,h:19,color:'#9e8568'},
@@ -263,7 +324,6 @@ function snapCalc(rx,ry,cw,ch){
   return{x:Math.round(bx),y:Math.round(by),snapped:sn};
 }
 
-// ====== PALETTE ======
 function renderPal(){
   const el=document.getElementById('blist');el.innerHTML='';
   const keys=['1','2','3','4','5','6','7','8','9','0','Q','W','A'];
@@ -279,7 +339,6 @@ function renderPal(){
   });
 }
 
-// ====== GRID CANVAS ======
 let cvs;
 function drawGrid(){
   const sf=document.getElementById('sf'),vp=document.getElementById('vp');
@@ -333,7 +392,6 @@ function renderBlocks(){
   const sf=document.getElementById('sf');
   sf.querySelectorAll('.blk:not(.ghost),.prev-label').forEach(e=>e.remove());
   const c=cPx();
-  // Prev layer
   if(S.layer>1){
     const prev=LD(S.layer-1);
     prev.forEach(b=>{const bt=BK.find(x=>x.id===b.bid);if(bt)sf.appendChild(mkBlk(b,bt,c,'prev-layer'))});
@@ -343,7 +401,6 @@ function renderBlocks(){
       lbl.textContent='Fiada '+(S.layer-1)+' (ref)';sf.appendChild(lbl);
     }
   }
-  // Current
   const arr=LD(S.layer);
   arr.forEach((b,idx)=>{
     const bt=BK.find(x=>x.id===b.bid);if(!bt)return;
@@ -365,69 +422,40 @@ function renderCounter(){
   document.getElementById('c-tt').textContent=tot;
 }
 
-// ====== WALL DETECTION (mixed orientations) ======
 function detectWalls(blocks){
   if(!blocks||blocks.length<2)return[];
-  const n=blocks.length;
-  const walls=[];
-
-  // Two blocks overlap vertically?
+  const n=blocks.length;const walls=[];
   function yOvlp(a,b){return a.y<b.y+b.ch&&a.y+a.ch>b.y}
-  // Two blocks overlap horizontally?
   function xOvlp(a,b){return a.x<b.x+b.cw&&a.x+a.cw>b.x}
-  // Adjacent in X (mortar gap)?
   function xAdj(a,b){return Math.abs((a.x+a.cw+MORTAR)-b.x)<=1||Math.abs((b.x+b.cw+MORTAR)-a.x)<=1}
-  // Adjacent in Y (mortar gap)?
   function yAdj(a,b){return Math.abs((a.y+a.ch+MORTAR)-b.y)<=1||Math.abs((b.y+b.ch+MORTAR)-a.y)<=1}
-
-  // Horizontal walls: blocks connected along X, overlapping in Y
   const usedH=new Set();
   for(let i=0;i<n;i++){
     if(usedH.has(i))continue;
-    const grp=[i];usedH.add(i);
-    let grew=true;
-    while(grew){grew=false;
-      for(let j=0;j<n;j++){if(usedH.has(j))continue;
-        for(const gi of grp){
-          if(xAdj(blocks[gi],blocks[j])&&yOvlp(blocks[gi],blocks[j])){
-            grp.push(j);usedH.add(j);grew=true;break}}}}
-    if(grp.length>=2){
-      const gb=grp.map(i=>blocks[i]);
+    const grp=[i];usedH.add(i);let grew=true;
+    while(grew){grew=false;for(let j=0;j<n;j++){if(usedH.has(j))continue;
+      for(const gi of grp){if(xAdj(blocks[gi],blocks[j])&&yOvlp(blocks[gi],blocks[j])){grp.push(j);usedH.add(j);grew=true;break}}}}
+    if(grp.length>=2){const gb=grp.map(i=>blocks[i]);
       const minX=Math.min(...gb.map(b=>b.x)),maxX=Math.max(...gb.map(b=>b.x+b.cw));
       const minY=Math.min(...gb.map(b=>b.y)),maxY=Math.max(...gb.map(b=>b.y+b.ch));
-      if((maxX-minX)>=(maxY-minY))
-        walls.push({axis:'x',minX,maxX,minY,maxY,totalCm:maxX-minX,blocks:grp.length});
-    }
-  }
-
-  // Vertical walls: blocks connected along Y, overlapping in X
+      if((maxX-minX)>=(maxY-minY))walls.push({axis:'x',minX,maxX,minY,maxY,totalCm:maxX-minX,blocks:grp.length})}}
   const usedV=new Set();
   for(let i=0;i<n;i++){
     if(usedV.has(i))continue;
-    const grp=[i];usedV.add(i);
-    let grew=true;
-    while(grew){grew=false;
-      for(let j=0;j<n;j++){if(usedV.has(j))continue;
-        for(const gi of grp){
-          if(yAdj(blocks[gi],blocks[j])&&xOvlp(blocks[gi],blocks[j])){
-            grp.push(j);usedV.add(j);grew=true;break}}}}
-    if(grp.length>=2){
-      const gb=grp.map(i=>blocks[i]);
+    const grp=[i];usedV.add(i);let grew=true;
+    while(grew){grew=false;for(let j=0;j<n;j++){if(usedV.has(j))continue;
+      for(const gi of grp){if(yAdj(blocks[gi],blocks[j])&&xOvlp(blocks[gi],blocks[j])){grp.push(j);usedV.add(j);grew=true;break}}}}
+    if(grp.length>=2){const gb=grp.map(i=>blocks[i]);
       const minX=Math.min(...gb.map(b=>b.x)),maxX=Math.max(...gb.map(b=>b.x+b.cw));
       const minY=Math.min(...gb.map(b=>b.y)),maxY=Math.max(...gb.map(b=>b.y+b.ch));
-      if((maxY-minY)>(maxX-minX))
-        walls.push({axis:'y',minX,maxX,minY,maxY,totalCm:maxY-minY,blocks:grp.length});
-    }
-  }
+      if((maxY-minY)>(maxX-minX))walls.push({axis:'y',minX,maxX,minY,maxY,totalCm:maxY-minY,blocks:grp.length})}}
   return walls;
 }
 
 function renderWallDims(){
-  const sf=document.getElementById('sf');
-  sf.querySelectorAll('.wall-dim').forEach(e=>e.remove());
+  const sf=document.getElementById('sf');sf.querySelectorAll('.wall-dim').forEach(e=>e.remove());
   const arr=LD(S.layer);if(arr.length<2)return;
-  const walls=detectWalls(arr);
-  const c=cPx();
+  const walls=detectWalls(arr);const c=cPx();
   walls.forEach(w=>{
     const el=document.createElement('div');
     const m=(w.totalCm/100),lbl=m>=1?m.toFixed(2)+'m':w.totalCm+'cm';
@@ -446,7 +474,6 @@ function renderWallDims(){
 
 function render(){drawGrid();renderBlocks();renderWallDims();renderCounter();document.getElementById('i-fi').textContent='Fiada '+S.layer}
 
-// ====== GHOST ======
 let ghostEl=null,lastSn=false;
 function showGhost(gx,gy){
   if(S.tool!=='draw'){hideGhost();return}
@@ -477,7 +504,6 @@ function placeAt(gx,gy){
   LD(S.layer).push({bid:bt.id,x:sx,y:sy,cw,ch});return true;
 }
 
-// ====== EVENTS ======
 function setup(){
   const vp=document.getElementById('vp');
   vp.addEventListener('mousemove',e=>{
@@ -545,25 +571,18 @@ function doClear(){if(!LD(S.layer).length)return;pushU();S.data[S.layer]=[];rend
 // ====== SAVE / LOAD ======
 function triggerDownload(filename, content, mimeType){
   try{
-    // Primary: Blob URL (works in normal browsers)
     const blob=new Blob([content],{type:mimeType});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;
-    a.download=filename;
-    a.style.display='none';
-    document.body.appendChild(a);
-    a.click();
+    a.href=url;a.download=filename;a.style.display='none';
+    document.body.appendChild(a);a.click();
     setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},200);
   }catch(e){
-    // Fallback: data URI (for sandboxed environments)
     try{
       const dataUri='data:'+mimeType+';charset=utf-8,'+encodeURIComponent(content);
-      const a=document.createElement('a');
-      a.href=dataUri;a.download=filename;a.style.display='none';
+      const a=document.createElement('a');a.href=dataUri;a.download=filename;a.style.display='none';
       document.body.appendChild(a);a.click();document.body.removeChild(a);
     }catch(e2){
-      // Last resort: open in new window for copy-paste
       const w=window.open('','_blank');
       if(w){w.document.write('<pre>'+content.replace(/</g,'&lt;')+'</pre>');w.document.title=filename}
     }
@@ -634,13 +653,11 @@ function doExport(){
         const dir=w.axis==='x'?'Horiz.':'Vert. ';
         t+='    Parede '+(wi+1)+' ('+dir+'): '+(w.totalCm/100).toFixed(2)+'m ('+w.totalCm+'cm) — '+w.blocks+' blocos\n'})}}
   if(!temParede)t+='  (nenhuma parede detectada — encaixe 2+ blocos)\n';
-  // Footer
   t+='\n\n════════════════════════════════════════════\n';
   t+='  Relatório gerado pela Calculadora de Blocos\n';
   t+='  https://tryflowk.github.io/calculadoradeblocos/\n';
   t+='════════════════════════════════════════════\n\n';
   t+='  Dúvidas ou sugestões? Entre em contato:\n';
-  // Email ofuscado no relatório (montado em partes para dificultar scraping)
   const ep=['tryflowk','gmail.com'];
   t+='  Email: '+ep[0]+' [arroba] '+ep[1]+'\n\n';
   t+='  ─────────────────────────────────────────\n';
@@ -680,248 +697,83 @@ let scene3d,camera3d,renderer3d,controls3d,anim3d;
 function open3D(){
   const container=document.getElementById('v3d-canvas');
   document.getElementById('view3d').classList.add('open');
-
-  // Collect all blocks from all layers
   const allBlocks=[];
-  for(let ln in S.data){
-    const layerNum=parseInt(ln);
-    S.data[ln].forEach(b=>{
-      const bt=BK.find(x=>x.id===b.bid);
-      if(bt)allBlocks.push({...b,layerNum,bt});
-    });
-  }
-
+  for(let ln in S.data){const layerNum=parseInt(ln);
+    S.data[ln].forEach(b=>{const bt=BK.find(x=>x.id===b.bid);if(bt)allBlocks.push({...b,layerNum,bt})})}
   if(!allBlocks.length){showNotif('Nenhum bloco para visualizar');document.getElementById('view3d').classList.remove('open');return}
-
-  // Find bounding box center
   let mnX=Infinity,mnY=Infinity,mxX=-Infinity,mxY=-Infinity,mxLayer=0;
-  allBlocks.forEach(b=>{
-    if(b.x<mnX)mnX=b.x;if(b.y<mnY)mnY=b.y;
-    if(b.x+b.cw>mxX)mxX=b.x+b.cw;if(b.y+b.ch>mxY)mxY=b.y+b.ch;
-    if(b.layerNum>mxLayer)mxLayer=b.layerNum;
-  });
-  const cxModel=(mnX+mxX)/2;
-  const cyModel=(mnY+mxY)/2;
-  const spanX=mxX-mnX;
-  const spanY=mxY-mnY;
-  const LAYER_H=20; // 19cm block + 1cm mortar
-  const spanZ=mxLayer*LAYER_H;
-  const maxSpan=Math.max(spanX,spanY,spanZ);
-  const SC=1/maxSpan; // normalize to ~1 unit
-
-  // Setup Three.js
-  if(renderer3d){
-    // cleanup previous
-    cancelAnimationFrame(anim3d);
-    container.innerHTML='';
-    renderer3d.dispose();
-    scene3d=null;
-  }
-
-  scene3d=new THREE.Scene();
-  scene3d.background=new THREE.Color(0x1a1c20);
-
+  allBlocks.forEach(b=>{if(b.x<mnX)mnX=b.x;if(b.y<mnY)mnY=b.y;if(b.x+b.cw>mxX)mxX=b.x+b.cw;if(b.y+b.ch>mxY)mxY=b.y+b.ch;if(b.layerNum>mxLayer)mxLayer=b.layerNum});
+  const cxModel=(mnX+mxX)/2,cyModel=(mnY+mxY)/2;
+  const spanX=mxX-mnX,spanY=mxY-mnY;
+  const LAYER_H=20;const spanZ=mxLayer*LAYER_H;
+  const maxSpan=Math.max(spanX,spanY,spanZ);const SC=1/maxSpan;
+  if(renderer3d){cancelAnimationFrame(anim3d);container.innerHTML='';renderer3d.dispose();scene3d=null}
+  scene3d=new THREE.Scene();scene3d.background=new THREE.Color(0x1a1c20);
   const w=container.clientWidth,h=container.clientHeight;
   camera3d=new THREE.PerspectiveCamera(50,w/h,0.01,100);
-  camera3d.position.set(1.2,0.9,1.2);
-  camera3d.lookAt(0,0,0);
-
+  camera3d.position.set(1.2,0.9,1.2);camera3d.lookAt(0,0,0);
   renderer3d=new THREE.WebGLRenderer({antialias:true});
-  renderer3d.setSize(w,h);
-  renderer3d.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer3d.shadowMap.enabled=true;
-  renderer3d.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer3d.setSize(w,h);renderer3d.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer3d.shadowMap.enabled=true;renderer3d.shadowMap.type=THREE.PCFSoftShadowMap;
   container.appendChild(renderer3d.domElement);
-
-  // Lights
-  const ambient=new THREE.AmbientLight(0xffffff,0.5);
-  scene3d.add(ambient);
+  scene3d.add(new THREE.AmbientLight(0xffffff,0.5));
   const dirLight=new THREE.DirectionalLight(0xffffff,0.8);
-  dirLight.position.set(2,3,2);
-  dirLight.castShadow=true;
-  dirLight.shadow.mapSize.set(1024,1024);
-  dirLight.shadow.camera.left=-2;dirLight.shadow.camera.right=2;
-  dirLight.shadow.camera.top=2;dirLight.shadow.camera.bottom=-2;
+  dirLight.position.set(2,3,2);dirLight.castShadow=true;dirLight.shadow.mapSize.set(1024,1024);
+  dirLight.shadow.camera.left=-2;dirLight.shadow.camera.right=2;dirLight.shadow.camera.top=2;dirLight.shadow.camera.bottom=-2;
   scene3d.add(dirLight);
-  const fillLight=new THREE.DirectionalLight(0x8899bb,0.3);
-  fillLight.position.set(-1,1,-1);
-  scene3d.add(fillLight);
-
-  // Ground plane
+  const fillLight=new THREE.DirectionalLight(0x8899bb,0.3);fillLight.position.set(-1,1,-1);scene3d.add(fillLight);
   const groundGeo=new THREE.PlaneGeometry(3,3);
-  const groundMat=new THREE.MeshStandardMaterial({color:0x2a2d32,roughness:0.9});
-  const ground=new THREE.Mesh(groundGeo,groundMat);
-  ground.rotation.x=-Math.PI/2;
-  ground.position.y=-0.005;
-  ground.receiveShadow=true;
-  scene3d.add(ground);
-
-  // Create blocks
+  const ground=new THREE.Mesh(groundGeo,new THREE.MeshStandardMaterial({color:0x2a2d32,roughness:0.9}));
+  ground.rotation.x=-Math.PI/2;ground.position.y=-0.005;ground.receiveShadow=true;scene3d.add(ground);
   const matCache={};
   allBlocks.forEach(b=>{
-    const bw=b.cw*SC;
-    const bh=b.bt.h*SC;
-    const bd=b.ch*SC;
-
+    const bw=b.cw*SC,bh=b.bt.h*SC,bd=b.ch*SC;
     const geo=new THREE.BoxGeometry(bw,bh,bd);
-
-    // Get or create material
-    const col=b.bt.color;
-    if(!matCache[col]){
-      matCache[col]=new THREE.MeshStandardMaterial({
-        color:new THREE.Color(col),
-        roughness:0.85,
-        metalness:0.02,
-      });
-    }
-
-    const mesh=new THREE.Mesh(geo,matCache[col]);
-
-    // Position: X in 3D = x from grid, Z in 3D = y from grid (depth), Y in 3D = height (layers)
-    const px=(b.x+b.cw/2-cxModel)*SC;
-    const py=(b.layerNum-1)*LAYER_H*SC + bh/2;
-    const pz=(b.y+b.ch/2-cyModel)*SC;
-    mesh.position.set(px,py,pz);
-    mesh.castShadow=true;
-    mesh.receiveShadow=true;
-
-    // Edge lines for definition
-    const edges=new THREE.EdgesGeometry(geo);
-    const lineMat=new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:0.15});
-    const wireframe=new THREE.LineSegments(edges,lineMat);
-    mesh.add(wireframe);
-
+    if(!matCache[b.bt.color])matCache[b.bt.color]=new THREE.MeshStandardMaterial({color:new THREE.Color(b.bt.color),roughness:0.85,metalness:0.02});
+    const mesh=new THREE.Mesh(geo,matCache[b.bt.color]);
+    mesh.position.set((b.x+b.cw/2-cxModel)*SC,(b.layerNum-1)*LAYER_H*SC+bh/2,(b.y+b.ch/2-cyModel)*SC);
+    mesh.castShadow=true;mesh.receiveShadow=true;
+    mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:0.15})));
     scene3d.add(mesh);
   });
-
-  // Mortar lines between layers (thin planes)
-  for(let l=1;l<=mxLayer;l++){
-    if(!S.data[l]||!S.data[l].length)continue;
+  for(let l=1;l<=mxLayer;l++){if(!S.data[l]||!S.data[l].length)continue;
     S.data[l].forEach(b=>{
-      const bw=b.cw*SC;
-      const bd=b.ch*SC;
-      const mortarGeo=new THREE.PlaneGeometry(bw*1.01,bd*1.01);
-      const mortarMat=new THREE.MeshStandardMaterial({color:0x888888,roughness:1,side:THREE.DoubleSide});
-      const mortarMesh=new THREE.Mesh(mortarGeo,mortarMat);
-      const px=(b.x+b.cw/2-cxModel)*SC;
-      const py=(l-1)*LAYER_H*SC;
-      const pz=(b.y+b.ch/2-cyModel)*SC;
-      mortarMesh.position.set(px,py,pz);
-      mortarMesh.rotation.x=-Math.PI/2;
-      scene3d.add(mortarMesh);
-    });
-  }
-
-  // Orbit controls (manual implementation since we can't import OrbitControls)
-  let isDragging=false,isShift=false;
-  let prevX=0,prevY=0;
-  let theta=Math.PI/4,phi=Math.PI/4;
-  let radius=1.8;
+      const mortarMesh=new THREE.Mesh(new THREE.PlaneGeometry(b.cw*SC*1.01,b.ch*SC*1.01),new THREE.MeshStandardMaterial({color:0x888888,roughness:1,side:THREE.DoubleSide}));
+      mortarMesh.position.set((b.x+b.cw/2-cxModel)*SC,(l-1)*LAYER_H*SC,(b.y+b.ch/2-cyModel)*SC);
+      mortarMesh.rotation.x=-Math.PI/2;scene3d.add(mortarMesh)})}
+  let isDragging=false,isShift=false,prevX=0,prevY=0;
+  let theta=Math.PI/4,phi=Math.PI/4,radius=1.8;
   let targetX=0,targetY=spanZ*SC/2,targetZ=0;
-
   function updateCam(){
     camera3d.position.x=targetX+radius*Math.sin(phi)*Math.cos(theta);
     camera3d.position.y=targetY+radius*Math.cos(phi);
     camera3d.position.z=targetZ+radius*Math.sin(phi)*Math.sin(theta);
-    camera3d.lookAt(targetX,targetY,targetZ);
-  }
+    camera3d.lookAt(targetX,targetY,targetZ);}
   updateCam();
-
   const cvsDom=renderer3d.domElement;
-
-  cvsDom.addEventListener('mousedown',e=>{
-    isDragging=true;isShift=e.shiftKey;prevX=e.clientX;prevY=e.clientY;
-  });
-  window.addEventListener('mousemove',e=>{
-    if(!isDragging)return;
-    const dx=e.clientX-prevX,dy=e.clientY-prevY;
-    prevX=e.clientX;prevY=e.clientY;
-    if(isShift||e.shiftKey){
-      // Pan
-      const panSpeed=0.002*radius;
-      const right=new THREE.Vector3();
-      const up=new THREE.Vector3(0,1,0);
-      right.crossVectors(camera3d.getWorldDirection(new THREE.Vector3()),up).normalize();
-      targetX-=dx*panSpeed*right.x;
-      targetZ-=dx*panSpeed*right.z;
-      targetY+=dy*panSpeed;
-    }else{
-      // Orbit
-      theta-=dx*0.008;
-      phi-=dy*0.008;
-      phi=Math.max(0.1,Math.min(Math.PI-0.1,phi));
-    }
-    updateCam();
-  });
+  cvsDom.addEventListener('mousedown',e=>{isDragging=true;isShift=e.shiftKey;prevX=e.clientX;prevY=e.clientY});
+  window.addEventListener('mousemove',e=>{if(!isDragging)return;const dx=e.clientX-prevX,dy=e.clientY-prevY;prevX=e.clientX;prevY=e.clientY;
+    if(isShift||e.shiftKey){const ps=0.002*radius;const right=new THREE.Vector3();right.crossVectors(camera3d.getWorldDirection(new THREE.Vector3()),new THREE.Vector3(0,1,0)).normalize();targetX-=dx*ps*right.x;targetZ-=dx*ps*right.z;targetY+=dy*ps}
+    else{theta-=dx*0.008;phi-=dy*0.008;phi=Math.max(0.1,Math.min(Math.PI-0.1,phi))}updateCam()});
   window.addEventListener('mouseup',()=>{isDragging=false});
-
-  cvsDom.addEventListener('wheel',e=>{
-    e.preventDefault();
-    radius*=1+e.deltaY*0.001;
-    radius=Math.max(0.2,Math.min(10,radius));
-    updateCam();
-  },{passive:false});
-
-  // Touch support
+  cvsDom.addEventListener('wheel',e=>{e.preventDefault();radius*=1+e.deltaY*0.001;radius=Math.max(0.2,Math.min(10,radius));updateCam()},{passive:false});
   let touchDist=0;
-  cvsDom.addEventListener('touchstart',e=>{
-    if(e.touches.length===1){isDragging=true;prevX=e.touches[0].clientX;prevY=e.touches[0].clientY}
-    if(e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX;
-      const dy=e.touches[0].clientY-e.touches[1].clientY;
-      touchDist=Math.sqrt(dx*dx+dy*dy);
-    }
-  },{passive:true});
-  cvsDom.addEventListener('touchmove',e=>{
-    e.preventDefault();
-    if(e.touches.length===1&&isDragging){
-      const dx=e.touches[0].clientX-prevX,dy=e.touches[0].clientY-prevY;
-      prevX=e.touches[0].clientX;prevY=e.touches[0].clientY;
-      theta-=dx*0.008;phi-=dy*0.008;
-      phi=Math.max(0.1,Math.min(Math.PI-0.1,phi));
-      updateCam();
-    }
-    if(e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX;
-      const dy=e.touches[0].clientY-e.touches[1].clientY;
-      const dist=Math.sqrt(dx*dx+dy*dy);
-      radius*=touchDist/dist;
-      radius=Math.max(0.2,Math.min(10,radius));
-      touchDist=dist;
-      updateCam();
-    }
-  },{passive:false});
+  cvsDom.addEventListener('touchstart',e=>{if(e.touches.length===1){isDragging=true;prevX=e.touches[0].clientX;prevY=e.touches[0].clientY}
+    if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;touchDist=Math.sqrt(dx*dx+dy*dy)}},{passive:true});
+  cvsDom.addEventListener('touchmove',e=>{e.preventDefault();
+    if(e.touches.length===1&&isDragging){const dx=e.touches[0].clientX-prevX,dy=e.touches[0].clientY-prevY;prevX=e.touches[0].clientX;prevY=e.touches[0].clientY;theta-=dx*0.008;phi-=dy*0.008;phi=Math.max(0.1,Math.min(Math.PI-0.1,phi));updateCam()}
+    if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;const dist=Math.sqrt(dx*dx+dy*dy);radius*=touchDist/dist;radius=Math.max(0.2,Math.min(10,radius));touchDist=dist;updateCam()}},{passive:false});
   cvsDom.addEventListener('touchend',()=>{isDragging=false});
-
-  // Animation loop
-  function animate(){
-    anim3d=requestAnimationFrame(animate);
-    renderer3d.render(scene3d,camera3d);
-  }
-  animate();
-
-  // Handle resize
-  window._resize3d=()=>{
-    const w2=container.clientWidth,h2=container.clientHeight;
-    if(w2&&h2){camera3d.aspect=w2/h2;camera3d.updateProjectionMatrix();renderer3d.setSize(w2,h2)}
-  };
+  function animate(){anim3d=requestAnimationFrame(animate);renderer3d.render(scene3d,camera3d)}animate();
+  window._resize3d=()=>{const w2=container.clientWidth,h2=container.clientHeight;if(w2&&h2){camera3d.aspect=w2/h2;camera3d.updateProjectionMatrix();renderer3d.setSize(w2,h2)}};
   window.addEventListener('resize',window._resize3d);
 }
 
-function close3D(){
-  document.getElementById('view3d').classList.remove('open');
-  if(anim3d)cancelAnimationFrame(anim3d);
-  if(window._resize3d)window.removeEventListener('resize',window._resize3d);
-}
+function close3D(){document.getElementById('view3d').classList.remove('open');if(anim3d)cancelAnimationFrame(anim3d);if(window._resize3d)window.removeEventListener('resize',window._resize3d)}
 
 renderPal();setup();render();
 
-// Load Three.js
-(function(){
-  const s=document.createElement('script');
-  s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-  document.head.appendChild(s);
-})();
+(function(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';document.head.appendChild(s)})();
 </script>
 </body>
 </html>
