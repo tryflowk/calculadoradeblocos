@@ -572,22 +572,47 @@ function showNotif(msg){
 function doExport(){
   const ct={};BK.forEach(b=>ct[b.id]=0);let tot=0;
   for(let n in S.data)S.data[n].forEach(b=>{ct[b.bid]++;tot++});
-  let t='════════════════════════════════════════\n  PROJETISTA DE BLOCOS — RELATÓRIO\n════════════════════════════════════════\n\n';
-  t+='Fiadas: '+Object.keys(S.data).filter(k=>S.data[k].length>0).length+'\nTotal: '+tot+'\n\n── CONTAGEM ──\n\n';
+  const dataHoje=new Date().toLocaleDateString('pt-BR');
+  let t='════════════════════════════════════════════\n';
+  t+='  CALCULADORA DE BLOCOS — RELATÓRIO\n';
+  t+='════════════════════════════════════════════\n';
+  t+='  Data: '+dataHoje+'\n\n';
+  t+='Fiadas com blocos: '+Object.keys(S.data).filter(k=>S.data[k].length>0).length+'\n';
+  t+='Total de blocos: '+tot+'\n\n';
+  t+='── CONTAGEM POR TIPO ──────────────────────\n\n';
   BK.forEach(bt=>{if(ct[bt.id]>0)t+='  '+bt.name.padEnd(22)+(bt.w+'×'+bt.d+'×'+bt.h+'cm').padEnd(14)+'× '+ct[bt.id]+'\n'});
-  t+='\n── POR FIADA ──\n\n';
+  t+='\n── DETALHES POR FIADA ─────────────────────\n\n';
   for(let i=1;i<=S.maxL;i++){if(S.data[i]&&S.data[i].length>0){
-    t+='  Fiada '+String(i).padStart(2)+': '+S.data[i].length+'\n';
+    t+='  Fiada '+String(i).padStart(2)+': '+S.data[i].length+' bloco(s)\n';
     const lc={};S.data[i].forEach(b=>lc[b.bid]=(lc[b.bid]||0)+1);
     Object.entries(lc).forEach(([bid,c])=>{const bt=BK.find(b=>b.id===bid);if(bt)t+='    └─ '+bt.name+': '+c+'\n'})}}
-  t+='\n── MEDIDAS DE PAREDES ──\n\n';
+  t+='\n── MEDIDAS DE PAREDES ─────────────────────\n\n';
+  let temParede=false;
   for(let i=1;i<=S.maxL;i++){
     if(!S.data[i]||S.data[i].length<2)continue;
     const walls=detectWalls(S.data[i]);
-    if(walls.length){t+='  Fiada '+i+':\n';
+    if(walls.length){temParede=true;t+='  Fiada '+i+':\n';
       walls.forEach((w,wi)=>{
         const dir=w.axis==='x'?'Horiz.':'Vert. ';
         t+='    Parede '+(wi+1)+' ('+dir+'): '+(w.totalCm/100).toFixed(2)+'m ('+w.totalCm+'cm) — '+w.blocks+' blocos\n'})}}
+  if(!temParede)t+='  (nenhuma parede detectada — encaixe 2+ blocos)\n';
+  // Footer
+  t+='\n\n════════════════════════════════════════════\n';
+  t+='  Relatório gerado pela Calculadora de Blocos\n';
+  t+='  https://tryflowk.github.io/calculadoradeblocos/\n';
+  t+='════════════════════════════════════════════\n\n';
+  t+='  Dúvidas ou sugestões? Entre em contato:\n';
+  // Email ofuscado no relatório (montado em partes para dificultar scraping)
+  const ep=['tryflowk','gmail.com'];
+  t+='  Email: '+ep[0]+' [arroba] '+ep[1]+'\n\n';
+  t+='  ─────────────────────────────────────────\n';
+  t+='  Este sistema é mantido e oferecido de graça.\n';
+  t+='  Se te ajudou, considere pagar um café!\n\n';
+  t+='  ☕ PIX (copie a chave abaixo):\n';
+  t+='  ┌─────────────────────────────────────────┐\n';
+  t+='  │  e2a6d1fc-4eb1-456d-8962-e9f05099410b   │\n';
+  t+='  └─────────────────────────────────────────┘\n\n';
+  t+='  Obrigado por usar! 🧱\n';
   triggerDownload('blocos-relatorio.txt',t,'text/plain');
 }
 
