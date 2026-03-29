@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Bloco de concreto isométrico 39x19x19 -->
+  <!-- Cores de cimento -->
+  <!-- Top face -->
+  <polygon fill="#c8c8c0" points="8,28 32,42 56,28 32,14"/>
+  <!-- Left face -->
+  <polygon fill="#888880" points="8,28 8,50 32,64 32,42"/>
+  <!-- Right face -->
+  <polygon fill="#a8a8a0" points="32,42 32,64 56,50 56,28"/>
+  <!-- Hole 1 top -->
+  <polygon fill="#b0b0a8" points="14,28 22,32 30,28 22,24"/>
+  <!-- Hole 1 left wall -->
+  <polygon fill="#686860" points="14,28 14,38 22,42 22,32"/>
+  <!-- Hole 1 right wall -->
+  <polygon fill="#888878" points="22,32 30,28 30,38 22,42"/>
+  <!-- Hole 2 top -->
+  <polygon fill="#b0b0a8" points="34,32 42,36 50,32 42,28"/>
+  <!-- Hole 2 left wall -->
+  <polygon fill="#686860" points="34,32 34,42 42,46 42,36"/>
+  <!-- Hole 2 right wall -->
+  <polygon fill="#888878" points="42,36 50,32 50,42 42,46"/>
+  <!-- Edges -->
+  <polyline fill="none" stroke="#606058" stroke-width="0.8" points="8,28 32,42 56,28 32,14 8,28"/>
+  <line fill="none" stroke="#606058" stroke-width="0.8" x1="8" y1="28" x2="8" y2="50"/>
+  <line fill="none" stroke="#606058" stroke-width="0.8" x1="32" y1="42" x2="32" y2="64"/>
+  <line fill="none" stroke="#606058" stroke-width="0.8" x1="56" y1="28" x2="56" y2="50"/>
+  <polyline fill="none" stroke="#606058" stroke-width="0.8" points="8,50 32,64 56,50"/>
+</svg>
