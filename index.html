@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="apple-touch-icon" href="favicon-32.png">
-<meta property="og:site_name" content="Calculadora de Blocos">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3JPDEVV0BX"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-3JPDEVV0BX');</script>
@@ -120,6 +116,9 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:
 .wall-dim.vertical .dim-end-t,.wall-dim.vertical .dim-end-b{position:absolute;height:1px;width:8px;background:var(--acc);left:50%;transform:translateX(-50%)}
 .wall-dim.vertical .dim-end-t{top:0}.wall-dim.vertical .dim-end-b{bottom:0}
 #file-input{display:none}
+.sel-rect{position:absolute;border:2px dashed #5af;background:#5af2;pointer-events:none;z-index:200}
+.blk.selected{outline:2px solid #5af;outline-offset:-1px;z-index:6}
+.blk.selected::before{content:'';position:absolute;inset:0;background:#5af2;pointer-events:none}
 #view3d{position:fixed;inset:0;z-index:2000;background:#111;display:none;flex-direction:column}
 #view3d.open{display:flex}
 #v3d-bar{height:40px;background:var(--panel);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
@@ -208,17 +207,46 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:
   </div>
 </div>
 
+<!-- INSERT/DELETE LAYER DIALOG -->
+<div class="dialog-ov" id="dlg-layer">
+  <div class="dialog-box">
+    <h3 id="dlg-layer-title">Gerenciar fiadas</h3>
+    <label id="dlg-layer-desc"></label>
+    <select id="dlg-layer-pos"></select>
+    <div class="dbtn-row">
+      <button class="dbtn" onclick="closeDlgLayer()">Cancelar</button>
+      <button class="dbtn primary" id="dlg-layer-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEND SELECTION TO LAYER DIALOG -->
+<div class="dialog-ov" id="dlg-send">
+  <div class="dialog-box">
+    <h3>Enviar seleção para fiada</h3>
+    <label>Mover <strong id="dlg-send-count">0</strong> blocos para a fiada:</label>
+    <select id="dlg-send-dest"></select>
+    <div class="dbtn-row">
+      <button class="dbtn" onclick="closeDlgSend()">Cancelar</button>
+      <button class="dbtn primary" onclick="doSendToLayer()">Mover</button>
+    </div>
+  </div>
+</div>
+
 <div class="hdr">
   <div class="logo">▧ Calculadora de Blocos</div>
   <button class="hamburger" id="hambtn" onclick="toggleMenu()">☰</button>
   <div class="desk-btns">
     <button class="btn on" id="b-draw" onclick="setTool('draw')">✏ Desenhar</button>
     <button class="btn" id="b-erase" onclick="setTool('erase')">✕ Apagar</button>
+    <button class="btn" id="b-select" onclick="setTool('select')">⬚ Selecionar</button>
     <div class="sep"></div>
     <button class="btn" id="b-undo" onclick="doUndo()" disabled>↩</button>
     <button class="btn" id="b-redo" onclick="doRedo()" disabled>↪</button>
     <div class="sep"></div>
     <button class="btn" onclick="openCopyDlg()">⧉ Copiar fiada de…</button>
+    <button class="btn" onclick="openInsertLayer()">＋ Inserir fiada</button>
+    <button class="btn" onclick="openDeleteLayer()">－ Excluir fiada</button>
     <button class="btn" onclick="doClear()">✕ Limpar</button>
     <div class="spacer"></div>
     <button class="btn" onclick="doSave()">💾 Salvar</button>
@@ -234,9 +262,12 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:
 <div class="mobile-menu" id="mob-menu">
   <button class="btn on" onclick="setTool('draw');toggleMenu()">✏ Desenhar</button>
   <button class="btn" onclick="setTool('erase');toggleMenu()">✕ Apagar</button>
+  <button class="btn" onclick="setTool('select');toggleMenu()">⬚ Selecionar</button>
   <button class="btn" onclick="setOrient(S.orient==='ns'?'ew':'ns');toggleMenu()">↻ Girar</button>
   <button class="btn" onclick="doUndo();toggleMenu()">↩ Desfazer</button>
   <button class="btn" onclick="openCopyDlg();toggleMenu()">⧉ Copiar fiada</button>
+  <button class="btn" onclick="openInsertLayer();toggleMenu()">＋ Inserir fiada</button>
+  <button class="btn" onclick="openDeleteLayer();toggleMenu()">－ Excluir fiada</button>
   <button class="btn" onclick="doClear();toggleMenu()">✕ Limpar</button>
   <button class="btn" onclick="doSave();toggleMenu()">💾 Salvar</button>
   <button class="btn" onclick="document.getElementById('file-input').click();toggleMenu()">📂 Carregar</button>
@@ -263,6 +294,9 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:
       <span class="tg tgt" id="i-tl">Desenhar</span>
       <span class="co" id="i-co">—</span>
       <span class="co" id="i-snap" style="color:#8f8"></span>
+      <span class="co" id="i-sel" style="color:#5af;font-weight:600;display:none"></span>
+      <button class="btn" id="sel-del" style="display:none;color:var(--red);font-size:10px" onclick="deleteSelected()">🗑 Excluir</button>
+      <button class="btn" id="sel-send" style="display:none;color:#5af;font-size:10px" onclick="openSendToLayer()">↗ Enviar p/ fiada</button>
       <span class="sp"></span>
       <span class="co desk-hint" style="font-size:9px;color:var(--mut)">Scroll=Zoom · Ctrl+Arrasta=Pan</span>
       <div class="zc">
@@ -345,9 +379,12 @@ const BK=[
   {id:'amar34',name:'Amarração 34',w:34,d:14,h:19,color:'#7a6b3a'},
   {id:'j14',name:'Bloco J 14',w:39,d:14,h:19,color:'#3a7a7a',tipo:'j'},
   {id:'j19',name:'Bloco J 19',w:39,d:19,h:19,color:'#4a8e8e',tipo:'j'},
+  {id:'amarT',name:'Amarração T',w:54,d:19,h:14,color:'#6b5a3a'},
 ];
 const GW=2000,GH=2000,MORTAR=1,SNAP_R=8,BASE_PX=3;
-const S={sel:'int14',orient:'ns',layer:1,maxL:20,tool:'draw',zoom:1.2,panX:20,panY:20,data:{},clip:null,undo:[],redo:[],painting:false,lastKey:null,panning:false,psx:0,psy:0,pox:0,poy:0};
+const S={sel:'int14',orient:'ns',layer:1,maxL:20,tool:'draw',zoom:1.2,panX:20,panY:20,data:{},clip:null,undo:[],redo:[],painting:false,lastKey:null,panning:false,psx:0,psy:0,pox:0,poy:0,
+  // Selection state
+  selected:[],selecting:false,selStart:null,selRect:null,draggingSel:false,dragOff:null};
 function LD(n){if(!S.data[n])S.data[n]=[];return S.data[n]}
 function cPx(){return BASE_PX*S.zoom}
 function pushU(){S.undo.push(JSON.stringify(S.data));if(S.undo.length>60)S.undo.shift();S.redo=[];uUB()}
@@ -358,14 +395,14 @@ function bc(bt,o){let cw=bt.w,ch=bt.d;if(o==='ew'){cw=bt.d;ch=bt.w}return{cw,ch}
 function collides(x,y,w,h,skip){if(x<0||y<0||x+w>GW||y+h>GH)return true;const a=LD(S.layer);for(let i=0;i<a.length;i++){if(i===skip)continue;const b=a[i];if(x<b.x+b.cw&&x+w>b.x&&y<b.y+b.ch&&y+h>b.y)return true}return false}
 function snapCalc(rx,ry,cw,ch){const sources=[...LD(S.layer)];if(S.layer>1)sources.push(...LD(S.layer-1));if(!sources.length)return{x:rx,y:ry,snapped:false};let bx=rx,by=ry,sn=false,mdx=SNAP_R+1,mdy=SNAP_R+1;for(const b of sources){for(const cx of[b.x+b.cw+MORTAR,b.x-MORTAR-cw,b.x,b.x+b.cw-cw]){const dx=Math.abs(rx-cx);if(dx<mdx&&dx<=SNAP_R){mdx=dx;bx=cx;sn=true}}for(const cy of[b.y+b.ch+MORTAR,b.y-MORTAR-ch,b.y,b.y+b.ch-ch]){const dy=Math.abs(ry-cy);if(dy<mdy&&dy<=SNAP_R){mdy=dy;by=cy;sn=true}}}return{x:Math.round(bx),y:Math.round(by),snapped:sn}}
 
-function renderPal(){const el=document.getElementById('blist');el.innerHTML='';const keys=['1','2','3','4','5','6','7','8','9','0','Q','W','A'];BK.forEach((bt,i)=>{const{cw,ch}=bc(bt,'ns');const d=document.createElement('div');d.className='bi'+(S.sel===bt.id?' sel':'');d.onclick=()=>{S.sel=bt.id;renderPal()};d.innerHTML=`<div class="sw" style="width:${Math.max(cw*1.1,12)}px;height:${Math.max(ch*1.1,6)}px;background:${bt.color}"></div><div><div class="nm">${bt.name}</div><div class="dm">${bt.w}×${bt.d}×${bt.h}</div></div><span class="ky">${keys[i]||''}</span>`;el.appendChild(d)})}
+function renderPal(){const el=document.getElementById('blist');el.innerHTML='';const keys=['1','2','3','4','5','6','7','8','9','0','Q','W','A','T'];BK.forEach((bt,i)=>{const{cw,ch}=bc(bt,'ns');const d=document.createElement('div');d.className='bi'+(S.sel===bt.id?' sel':'');d.onclick=()=>{S.sel=bt.id;renderPal()};d.innerHTML=`<div class="sw" style="width:${Math.max(cw*1.1,12)}px;height:${Math.max(ch*1.1,6)}px;background:${bt.color}"></div><div><div class="nm">${bt.name}</div><div class="dm">${bt.w}×${bt.d}×${bt.h}</div></div><span class="ky">${keys[i]||''}</span>`;el.appendChild(d)})}
 
 let cvs;
 function drawGrid(){const sf=document.getElementById('sf'),vp=document.getElementById('vp');if(!cvs){cvs=document.createElement('canvas');cvs.style.cssText='position:absolute;top:0;left:0;pointer-events:none;';sf.insertBefore(cvs,sf.firstChild)}const c=cPx();sf.style.transform=`translate(${S.panX}px,${S.panY}px)`;sf.style.width=GW*c+'px';sf.style.height=GH*c+'px';const vw=vp.clientWidth,vh=vp.clientHeight;cvs.width=vw;cvs.height=vh;cvs.style.left=-S.panX+'px';cvs.style.top=-S.panY+'px';cvs.style.width=vw+'px';cvs.style.height=vh+'px';const g=cvs.getContext('2d');g.clearRect(0,0,vw,vh);g.fillStyle='#222528';g.fillRect(0,0,vw,vh);const ox=S.panX,oy=S.panY;if(c>=2.5){g.strokeStyle='#292c30';g.lineWidth=0.5;g.beginPath();const x0=Math.max(0,Math.floor(-ox/c)),x1=Math.min(GW,Math.ceil((-ox+vw)/c));for(let x=x0;x<=x1;x++){g.moveTo(x*c+ox,0);g.lineTo(x*c+ox,vh)}const y0=Math.max(0,Math.floor(-oy/c)),y1=Math.min(GH,Math.ceil((-oy+vh)/c));for(let y=y0;y<=y1;y++){g.moveTo(0,y*c+oy);g.lineTo(vw,y*c+oy)}g.stroke()}g.strokeStyle='#353940';g.lineWidth=c>=2?1:0.5;g.beginPath();const tx0=Math.max(0,Math.floor(-ox/c/10)*10),tx1=Math.min(GW,Math.ceil((-ox+vw)/c/10)*10);for(let x=tx0;x<=tx1;x+=10){g.moveTo(x*c+ox,0);g.lineTo(x*c+ox,vh)}const ty0=Math.max(0,Math.floor(-oy/c/10)*10),ty1=Math.min(GH,Math.ceil((-oy+vh)/c/10)*10);for(let y=ty0;y<=ty1;y+=10){g.moveTo(0,y*c+oy);g.lineTo(vw,y*c+oy)}g.stroke();g.strokeStyle='#484e56';g.lineWidth=1;g.beginPath();for(let x=tx0;x<=tx1;x+=50){g.moveTo(x*c+ox,0);g.lineTo(x*c+ox,vh)}for(let y=ty0;y<=ty1;y+=50){g.moveTo(0,y*c+oy);g.lineTo(vw,y*c+oy)}g.stroke();const fs=Math.max(8,9*S.zoom);g.fillStyle='#556';g.font=fs+'px sans-serif';for(let x=tx0;x<=tx1;x+=50){if(!x)continue;const p=x*c+ox;if(p>10&&p<vw-30)g.fillText(x+'cm',p+2,fs+2)}for(let y=ty0;y<=ty1;y+=50){if(!y)continue;const p=y*c+oy;if(p>fs+4&&p<vh-4)g.fillText(y+'cm',3,p-3)}}
 
 function mkBlk(block,bt,c,cls){const el=document.createElement('div');let cn='blk '+cls;if(bt.tipo==='canaleta')cn+=' tipo-canaleta';if(bt.tipo==='j')cn+=' tipo-j';el.className=cn;el.style.cssText=`left:${block.x*c}px;top:${block.y*c}px;width:${block.cw*c}px;height:${block.ch*c}px;background-color:${bt.color}`;if(block.cw*c>36&&block.ch*c>14)el.textContent=bt.name;else if(block.cw*c>18&&block.ch*c>9)el.textContent=bt.name.replace('Inteiro','Int').replace('Compensador','Comp').replace('Canaleta','Can').replace('Amarração','Amar').replace('Bloco ','');return el}
 
-function renderBlocks(){const sf=document.getElementById('sf');sf.querySelectorAll('.blk:not(.ghost),.prev-label').forEach(e=>e.remove());const c=cPx();if(S.layer>1){const prev=LD(S.layer-1);prev.forEach(b=>{const bt=BK.find(x=>x.id===b.bid);if(bt)sf.appendChild(mkBlk(b,bt,c,'prev-layer'))});if(prev.length){const lbl=document.createElement('div');lbl.className='prev-label';const f=prev[0];lbl.style.cssText=`left:${f.x*c}px;top:${f.y*c-16}px`;lbl.textContent='Fiada '+(S.layer-1)+' (ref)';sf.appendChild(lbl)}}const arr=LD(S.layer);arr.forEach((b,idx)=>{const bt=BK.find(x=>x.id===b.bid);if(!bt)return;const el=mkBlk(b,bt,c,'');el.addEventListener('mousedown',e=>{if(S.tool==='erase'){e.stopPropagation();pushU();arr.splice(idx,1);render()}});sf.appendChild(el)})}
+function renderBlocks(){const sf=document.getElementById('sf');sf.querySelectorAll('.blk:not(.ghost),.prev-label,.sel-rect').forEach(e=>e.remove());const c=cPx();if(S.layer>1){const prev=LD(S.layer-1);prev.forEach(b=>{const bt=BK.find(x=>x.id===b.bid);if(bt)sf.appendChild(mkBlk(b,bt,c,'prev-layer'))});if(prev.length){const lbl=document.createElement('div');lbl.className='prev-label';const f=prev[0];lbl.style.cssText=`left:${f.x*c}px;top:${f.y*c-16}px`;lbl.textContent='Fiada '+(S.layer-1)+' (ref)';sf.appendChild(lbl)}}const arr=LD(S.layer);arr.forEach((b,idx)=>{const bt=BK.find(x=>x.id===b.bid);if(!bt)return;const el=mkBlk(b,bt,c,'');if(S.selected.includes(idx))el.classList.add('selected');el.addEventListener('mousedown',e=>{if(S.tool==='erase'){e.stopPropagation();pushU();arr.splice(idx,1);S.selected=[];render()}});sf.appendChild(el)})}
 
 function renderCounter(){const el=document.getElementById('clist');el.innerHTML='';const ct={};BK.forEach(b=>ct[b.id]=0);let tot=0;for(let n in S.data)S.data[n].forEach(b=>{ct[b.bid]++;tot++});BK.forEach(bt=>{const c=ct[bt.id];if(c>0){const d=document.createElement('div');d.className='ci';d.innerHTML=`<div class="dt" style="background:${bt.color}"></div><span class="cn">${bt.name}</span><span class="cc">${c}</span>`;el.appendChild(d)}});document.getElementById('c-ly').textContent=LD(S.layer).length;document.getElementById('c-tt').textContent=tot}
 
@@ -373,7 +410,13 @@ function detectWalls(blocks){if(!blocks||blocks.length<2)return[];const n=blocks
 
 function renderWallDims(){const sf=document.getElementById('sf');sf.querySelectorAll('.wall-dim').forEach(e=>e.remove());const arr=LD(S.layer);if(arr.length<2)return;const walls=detectWalls(arr);const c=cPx();walls.forEach(w=>{const el=document.createElement('div');const m=(w.totalCm/100),lbl=m>=1?m.toFixed(2)+'m':w.totalCm+'cm';if(w.axis==='x'){el.className='wall-dim horizontal';el.style.cssText=`left:${w.minX*c}px;top:${w.minY*c-14}px;width:${(w.maxX-w.minX)*c}px;height:12px`;el.innerHTML=`<div class="dim-line"></div><div class="dim-end-l"></div><div class="dim-end-r"></div><div class="dim-label">↔ ${lbl} (${w.blocks} bl)</div>`}else{el.className='wall-dim vertical';el.style.cssText=`left:${w.minX*c-20}px;top:${w.minY*c}px;width:18px;height:${(w.maxY-w.minY)*c}px`;el.innerHTML=`<div class="dim-line"></div><div class="dim-end-t"></div><div class="dim-end-b"></div><div class="dim-label" style="writing-mode:vertical-lr;transform:rotate(180deg)">↕ ${lbl} (${w.blocks})</div>`}sf.appendChild(el)})}
 
-function render(){drawGrid();renderBlocks();renderWallDims();renderCounter();document.getElementById('i-fi').textContent='Fiada '+S.layer}
+function render(){drawGrid();renderBlocks();renderWallDims();renderCounter();document.getElementById('i-fi').textContent='Fiada '+S.layer;
+  const hasSel=S.selected.length>0;
+  document.getElementById('i-sel').style.display=hasSel?'':'none';
+  document.getElementById('i-sel').textContent=hasSel?S.selected.length+' selecionado(s)':'';
+  document.getElementById('sel-del').style.display=hasSel?'':'none';
+  document.getElementById('sel-send').style.display=hasSel?'':'none';
+}
 
 let ghostEl=null,lastSn=false;
 function showGhost(gx,gy){if(S.tool!=='draw'){hideGhost();return}const bt=BK.find(b=>b.id===S.sel);if(!bt)return;const{cw,ch}=bc(bt,S.orient);const{x:sx,y:sy,snapped}=snapCalc(gx,gy,cw,ch);const c=cPx(),sf=document.getElementById('sf');if(!ghostEl){ghostEl=document.createElement('div');ghostEl.className='blk ghost';sf.appendChild(ghostEl)}if(!ghostEl.parentNode)sf.appendChild(ghostEl);ghostEl.style.cssText=`left:${sx*c}px;top:${sy*c}px;width:${cw*c}px;height:${ch*c}px;background-color:${bt.color};display:flex`;const bad=collides(sx,sy,cw,ch,-1);ghostEl.className='blk ghost'+(bad?' bad':'')+(snapped&&!bad?' snapped':'');document.getElementById('i-snap').textContent=snapped&&!bad?'⊞ Snap':'';if(snapped&&!bad&&!lastSn)showNotif('⊞ Snap com argamassa');lastSn=snapped&&!bad;ghostEl._sx=sx;ghostEl._sy=sy;ghostEl._cw=cw;ghostEl._ch=ch}
@@ -387,9 +430,66 @@ function placeAt(gx,gy){const bt=BK.find(b=>b.id===S.sel);if(!bt)return false;co
 function setup(){
   const vp=document.getElementById('vp');
   // Mouse events
-  vp.addEventListener('mousemove',e=>{if(S.panning){S.panX=S.pox+(e.clientX-S.psx);S.panY=S.poy+(e.clientY-S.psy);render();return}const{gx,gy}=gpos(e);document.getElementById('i-co').textContent=`X:${gx}cm  Y:${gy}cm`;showGhost(gx,gy);if(S.painting&&S.tool==='draw'){const k=gx+','+gy;if(k!==S.lastKey){S.lastKey=k;if(placeAt(gx,gy))render()}}if(S.painting&&S.tool==='erase'){const a=LD(S.layer);for(let i=a.length-1;i>=0;i--){const b=a[i];if(gx>=b.x&&gx<b.x+b.cw&&gy>=b.y&&gy<b.y+b.ch){a.splice(i,1);render();break}}}});
-  vp.addEventListener('mousedown',e=>{if(e.ctrlKey||e.metaKey||e.button===1){e.preventDefault();S.panning=true;S.psx=e.clientX;S.psy=e.clientY;S.pox=S.panX;S.poy=S.panY;vp.classList.add('panning');return}if(e.button!==0)return;const{gx,gy}=gpos(e);if(S.tool==='draw'){pushU();S.painting=true;S.lastKey=gx+','+gy;if(placeAt(gx,gy))render()}else if(S.tool==='erase'){pushU();S.painting=true;const a=LD(S.layer);for(let i=a.length-1;i>=0;i--){const b=a[i];if(gx>=b.x&&gx<b.x+b.cw&&gy>=b.y&&gy<b.y+b.ch){a.splice(i,1);render();break}}}});
-  window.addEventListener('mouseup',()=>{S.painting=false;S.lastKey=null;if(S.panning){S.panning=false;document.getElementById('vp').classList.remove('panning')}});
+  vp.addEventListener('mousemove',e=>{
+    if(S.panning){S.panX=S.pox+(e.clientX-S.psx);S.panY=S.poy+(e.clientY-S.psy);render();return}
+    const{gx,gy}=gpos(e);
+    document.getElementById('i-co').textContent=`X:${gx}cm  Y:${gy}cm`;
+    // Selection: draw rect
+    if(S.selecting&&S.tool==='select'){
+      const c=cPx(),sf=document.getElementById('sf');
+      let sr=sf.querySelector('.sel-rect');if(!sr){sr=document.createElement('div');sr.className='sel-rect';sf.appendChild(sr)}
+      const x1=Math.min(S.selStart.gx,gx),y1=Math.min(S.selStart.gy,gy),x2=Math.max(S.selStart.gx,gx),y2=Math.max(S.selStart.gy,gy);
+      sr.style.cssText=`left:${x1*c}px;top:${y1*c}px;width:${(x2-x1)*c}px;height:${(y2-y1)*c}px`;
+      return;
+    }
+    // Selection: drag selected blocks
+    if(S.draggingSel&&S.selected.length){
+      const arr=LD(S.layer);const dx=gx-S.dragOff.gx,dy=gy-S.dragOff.gy;
+      if(dx!==0||dy!==0){
+        S.selected.forEach(idx=>{if(arr[idx]){arr[idx].x+=dx;arr[idx].y+=dy}});
+        S.dragOff={gx,gy};render();
+      }
+      return;
+    }
+    showGhost(gx,gy);
+    if(S.painting&&S.tool==='draw'){const k=gx+','+gy;if(k!==S.lastKey){S.lastKey=k;if(placeAt(gx,gy))render()}}
+    if(S.painting&&S.tool==='erase'){const a=LD(S.layer);for(let i=a.length-1;i>=0;i--){const b=a[i];if(gx>=b.x&&gx<b.x+b.cw&&gy>=b.y&&gy<b.y+b.ch){a.splice(i,1);render();break}}}
+  });
+  vp.addEventListener('mousedown',e=>{
+    if(e.ctrlKey||e.metaKey||e.button===1){e.preventDefault();S.panning=true;S.psx=e.clientX;S.psy=e.clientY;S.pox=S.panX;S.poy=S.panY;vp.classList.add('panning');return}
+    if(e.button!==0)return;const{gx,gy}=gpos(e);
+    if(S.tool==='select'){
+      // Check if clicking on a selected block to drag
+      const arr=LD(S.layer);
+      const clickedIdx=arr.findIndex((b,i)=>S.selected.includes(i)&&gx>=b.x&&gx<b.x+b.cw&&gy>=b.y&&gy<b.y+b.ch);
+      if(clickedIdx>=0){
+        pushU();S.draggingSel=true;S.dragOff={gx,gy};return;
+      }
+      // Start selection rectangle
+      S.selecting=true;S.selStart={gx,gy};S.selected=[];render();return;
+    }
+    if(S.tool==='draw'){pushU();S.painting=true;S.lastKey=gx+','+gy;if(placeAt(gx,gy))render()}
+    else if(S.tool==='erase'){pushU();S.painting=true;const a=LD(S.layer);for(let i=a.length-1;i>=0;i--){const b=a[i];if(gx>=b.x&&gx<b.x+b.cw&&gy>=b.y&&gy<b.y+b.ch){a.splice(i,1);S.selected=[];render();break}}}
+  });
+  window.addEventListener('mouseup',e=>{
+    // Finish selection rectangle
+    if(S.selecting&&S.tool==='select'){
+      S.selecting=false;
+      const{gx,gy}=gpos(e);
+      const x1=Math.min(S.selStart.gx,gx),y1=Math.min(S.selStart.gy,gy),x2=Math.max(S.selStart.gx,gx),y2=Math.max(S.selStart.gy,gy);
+      const arr=LD(S.layer);S.selected=[];
+      arr.forEach((b,i)=>{
+        // Block intersects selection rect
+        if(b.x<x2&&b.x+b.cw>x1&&b.y<y2&&b.y+b.ch>y1)S.selected.push(i);
+      });
+      const sf=document.getElementById('sf');const sr=sf.querySelector('.sel-rect');if(sr)sr.remove();
+      if(S.selected.length)showNotif(S.selected.length+' bloco(s) selecionado(s)');
+      render();return;
+    }
+    if(S.draggingSel){S.draggingSel=false;return}
+    S.painting=false;S.lastKey=null;
+    if(S.panning){S.panning=false;document.getElementById('vp').classList.remove('panning')}
+  });
   vp.addEventListener('mouseleave',()=>{hideGhost();document.getElementById('i-co').textContent='—'});
   vp.addEventListener('wheel',e=>{e.preventDefault();const r=vp.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top,old=S.zoom;S.zoom=Math.max(0.15,Math.min(S.zoom*(1+(e.deltaY<0?1:-1)*0.12),8));const sc=S.zoom/old;S.panX=mx-(mx-S.panX)*sc;S.panY=my-(my-S.panY)*sc;document.getElementById('i-zm').textContent=Math.round(S.zoom*100)+'%';if(ghostEl&&ghostEl.parentNode){ghostEl.parentNode.removeChild(ghostEl);ghostEl=null}render()},{passive:false});
   vp.addEventListener('contextmenu',e=>e.preventDefault());
@@ -440,14 +540,22 @@ function setup(){
       if(moved<15){
         const{gx,gy}=gposTouch(t);
         if(S.tool==='draw'){pushU();if(placeAt(gx,gy))render()}
-        else if(S.tool==='erase'){pushU();const a=LD(S.layer);for(let i=a.length-1;i>=0;i--){const b=a[i];if(gx>=b.x&&gx<b.x+b.cw&&gy>=b.y&&gy<b.y+b.ch){a.splice(i,1);render();break}}}
+        else if(S.tool==='erase'){pushU();const a=LD(S.layer);for(let i=a.length-1;i>=0;i--){const b=a[i];if(gx>=b.x&&gx<b.x+b.cw&&gy>=b.y&&gy<b.y+b.ch){a.splice(i,1);S.selected=[];render();break}}}
+        else if(S.tool==='select'){const a=LD(S.layer);for(let i=a.length-1;i>=0;i--){const b=a[i];if(gx>=b.x&&gx<b.x+b.cw&&gy>=b.y&&gy<b.y+b.ch){const si=S.selected.indexOf(i);if(si>=0)S.selected.splice(si,1);else S.selected.push(i);render();break}}}
       }
     }
     if(e.touches.length<2)wasPinch=false;
   },{passive:false});
 }
 
-function setTool(t){S.tool=t;document.getElementById('b-draw').classList.toggle('on',t==='draw');document.getElementById('b-erase').classList.toggle('on',t==='erase');document.getElementById('vp').classList.toggle('erasing',t==='erase');document.getElementById('i-tl').textContent=t==='draw'?'Desenhar':'Apagar';hideGhost()}
+function setTool(t){S.tool=t;S.selected=[];
+  document.getElementById('b-draw').classList.toggle('on',t==='draw');
+  document.getElementById('b-erase').classList.toggle('on',t==='erase');
+  document.getElementById('b-select').classList.toggle('on',t==='select');
+  document.getElementById('vp').classList.toggle('erasing',t==='erase');
+  document.getElementById('vp').style.cursor=t==='select'?'crosshair':t==='erase'?'pointer':'crosshair';
+  document.getElementById('i-tl').textContent=t==='draw'?'Desenhar':t==='erase'?'Apagar':'Selecionar';
+  hideGhost();render()}
 function setOrient(o){S.orient=o;document.getElementById('o-ns').classList.toggle('on',o==='ns');document.getElementById('o-ew').classList.toggle('on',o==='ew')}
 function setL(n){n=Math.max(1,Math.min(n,S.maxL));S.layer=n;document.getElementById('slider').value=n;document.getElementById('ldisp').innerHTML=n+'<br><small>/ '+S.maxL+'</small>';hideGhost();render()}
 function chgL(d){setL(S.layer+d)}
@@ -483,7 +591,103 @@ function doCopyFrom(){
   showNotif(`✓ ${count} blocos copiados da fiada ${src}`);
 }
 
-function doClear(){if(!LD(S.layer).length)return;pushU();S.data[S.layer]=[];render()}
+function doClear(){if(!LD(S.layer).length)return;pushU();S.data[S.layer]=[];S.selected=[];render()}
+
+// ====== INSERT / DELETE LAYER ======
+function openInsertLayer(){
+  const dlg=document.getElementById('dlg-layer');
+  document.getElementById('dlg-layer-title').textContent='Inserir nova fiada';
+  document.getElementById('dlg-layer-desc').textContent='Inserir fiada vazia antes da fiada:';
+  const sel=document.getElementById('dlg-layer-pos');sel.innerHTML='';
+  for(let i=1;i<=S.maxL+1;i++){const o=document.createElement('option');o.value=i;o.textContent=i<=S.maxL?'Antes da fiada '+i:'No final (fiada '+(S.maxL+1)+')';sel.appendChild(o)}
+  sel.value=S.layer;
+  document.getElementById('dlg-layer-ok').onclick=doInsertLayer;
+  dlg.classList.add('open');
+}
+function doInsertLayer(){
+  const pos=+document.getElementById('dlg-layer-pos').value;
+  pushU();
+  // Shift all layers from pos upward
+  const newData={};
+  for(let i=S.maxL;i>=pos;i--){if(S.data[i]&&S.data[i].length)newData[i+1]=S.data[i];delete S.data[i]}
+  for(let k in newData)S.data[k]=newData[k];
+  S.data[pos]=[];
+  S.maxL++;setMx(S.maxL);
+  S.selected=[];
+  closeDlgLayer();setL(pos);
+  showNotif('✓ Fiada inserida na posição '+pos);
+}
+function openDeleteLayer(){
+  const dlg=document.getElementById('dlg-layer');
+  document.getElementById('dlg-layer-title').textContent='Excluir fiada';
+  document.getElementById('dlg-layer-desc').textContent='Excluir fiada (as fiadas acima descem):';
+  const sel=document.getElementById('dlg-layer-pos');sel.innerHTML='';
+  for(let i=1;i<=S.maxL;i++){
+    const o=document.createElement('option');o.value=i;
+    const cnt=S.data[i]?S.data[i].length:0;
+    o.textContent='Fiada '+i+(cnt?' ('+cnt+' blocos)':' (vazia)');
+    sel.appendChild(o);
+  }
+  sel.value=S.layer;
+  document.getElementById('dlg-layer-ok').onclick=doDeleteLayer;
+  dlg.classList.add('open');
+}
+function doDeleteLayer(){
+  const pos=+document.getElementById('dlg-layer-pos').value;
+  pushU();
+  // Delete layer at pos and shift all above down
+  delete S.data[pos];
+  for(let i=pos+1;i<=S.maxL;i++){
+    if(S.data[i]){S.data[i-1]=S.data[i];delete S.data[i]}
+  }
+  if(S.maxL>1)S.maxL--;
+  setMx(S.maxL);S.selected=[];
+  closeDlgLayer();
+  setL(Math.min(pos,S.maxL));
+  showNotif('✓ Fiada '+pos+' excluída');
+}
+function closeDlgLayer(){document.getElementById('dlg-layer').classList.remove('open')}
+
+// ====== SELECTION ACTIONS ======
+function deleteSelected(){
+  if(!S.selected.length)return;
+  pushU();
+  const arr=LD(S.layer);
+  // Remove selected indices (highest first to preserve indices)
+  const sorted=[...S.selected].sort((a,b)=>b-a);
+  sorted.forEach(i=>{if(i<arr.length)arr.splice(i,1)});
+  S.selected=[];render();
+  showNotif('✓ Blocos excluídos');
+}
+function openSendToLayer(){
+  if(!S.selected.length){showNotif('Selecione blocos primeiro');return}
+  const dlg=document.getElementById('dlg-send');
+  document.getElementById('dlg-send-count').textContent=S.selected.length;
+  const sel=document.getElementById('dlg-send-dest');sel.innerHTML='';
+  for(let i=1;i<=S.maxL;i++){
+    if(i===S.layer)continue;
+    const o=document.createElement('option');o.value=i;
+    const cnt=S.data[i]?S.data[i].length:0;
+    o.textContent='Fiada '+i+(cnt?' ('+cnt+' blocos)':' (vazia)');
+    sel.appendChild(o);
+  }
+  if(!sel.options.length){showNotif('Só existe uma fiada');return}
+  dlg.classList.add('open');
+}
+function doSendToLayer(){
+  const dest=+document.getElementById('dlg-send-dest').value;
+  if(!dest)return;
+  pushU();
+  const srcArr=LD(S.layer);const destArr=LD(dest);
+  const sorted=[...S.selected].sort((a,b)=>b-a);
+  const moved=[];
+  sorted.forEach(i=>{if(i<srcArr.length){moved.push(srcArr[i]);srcArr.splice(i,1)}});
+  moved.forEach(b=>destArr.push(b));
+  S.selected=[];
+  closeDlgSend();render();
+  showNotif('✓ '+moved.length+' blocos movidos para fiada '+dest);
+}
+function closeDlgSend(){document.getElementById('dlg-send').classList.remove('open')}
 
 // ====== SAVE / LOAD ======
 function triggerDownload(fn,content,mime){try{const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fn;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},200)}catch(e){try{const a=document.createElement('a');a.href='data:'+mime+';charset=utf-8,'+encodeURIComponent(content);a.download=fn;a.style.display='none';document.body.appendChild(a);a.click();document.body.removeChild(a)}catch(e2){const w=window.open('','_blank');if(w){w.document.write('<pre>'+content.replace(/</g,'&lt;')+'</pre>')}}}
@@ -496,7 +700,27 @@ function showNotif(msg){const el=document.getElementById('notif');el.textContent
 function doExport(){const ct={};BK.forEach(b=>ct[b.id]=0);let tot=0;for(let n in S.data)S.data[n].forEach(b=>{ct[b.bid]++;tot++});const dh=new Date().toLocaleDateString('pt-BR');let t='════════════════════════════════════════════\n  CALCULADORA DE BLOCOS — RELATÓRIO\n════════════════════════════════════════════\n  Data: '+dh+'\n\nFiadas com blocos: '+Object.keys(S.data).filter(k=>S.data[k].length>0).length+'\nTotal de blocos: '+tot+'\n\n── CONTAGEM POR TIPO ──────────────────────\n\n';BK.forEach(bt=>{if(ct[bt.id]>0)t+='  '+bt.name.padEnd(22)+(bt.w+'×'+bt.d+'×'+bt.h+'cm').padEnd(14)+'× '+ct[bt.id]+'\n'});t+='\n── DETALHES POR FIADA ─────────────────────\n\n';for(let i=1;i<=S.maxL;i++){if(S.data[i]&&S.data[i].length>0){t+='  Fiada '+String(i).padStart(2)+': '+S.data[i].length+' bloco(s)\n';const lc={};S.data[i].forEach(b=>lc[b.bid]=(lc[b.bid]||0)+1);Object.entries(lc).forEach(([bid,c])=>{const bt=BK.find(b=>b.id===bid);if(bt)t+='    └─ '+bt.name+': '+c+'\n'})}}t+='\n── MEDIDAS DE PAREDES ─────────────────────\n\n';let tp=false;for(let i=1;i<=S.maxL;i++){if(!S.data[i]||S.data[i].length<2)continue;const walls=detectWalls(S.data[i]);if(walls.length){tp=true;t+='  Fiada '+i+':\n';walls.forEach((w,wi)=>{t+='    Parede '+(wi+1)+' ('+(w.axis==='x'?'Horiz.':'Vert.')+'): '+(w.totalCm/100).toFixed(2)+'m ('+w.totalCm+'cm) — '+w.blocks+' blocos\n'})}}if(!tp)t+='  (nenhuma parede detectada)\n';t+='\n\n════════════════════════════════════════════\n  Relatório gerado pela Calculadora de Blocos\n  https://tryflowk.github.io/calculadoradeblocos/\n════════════════════════════════════════════\n\n  Dúvidas ou sugestões? Entre em contato:\n';const ep=['tryflowk','gmail.com'];t+='  Email: '+ep[0]+' [arroba] '+ep[1]+'\n\n  ─────────────────────────────────────────\n  Este sistema é mantido e oferecido de graça.\n  Se te ajudou, considere pagar um café!\n\n  ☕ PIX (copie a chave abaixo):\n  ┌─────────────────────────────────────────┐\n  │  e2a6d1fc-4eb1-456d-8962-e9f05099410b   │\n  └─────────────────────────────────────────┘\n\n  Obrigado por usar! 🧱\n';triggerDownload('blocos-relatorio.txt',t,'text/plain')}
 
 // ====== KEYBOARD ======
-document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();doSave();return}if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();doUndo();return}if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();doRedo();return}if(e.key==='r'||e.key==='R')setOrient(S.orient==='ns'?'ew':'ns');if(e.key==='d'||e.key==='D')setTool('draw');if(e.key==='e'||e.key==='E')setTool('erase');if(e.key==='ArrowUp'){e.preventDefault();chgL(1)}if(e.key==='ArrowDown'){e.preventDefault();chgL(-1)}if(e.key==='+'||e.key==='=')doZoom(1);if(e.key==='-')doZoom(-1);const num=parseInt(e.key);if(!isNaN(num)){const idx=num===0?9:num-1;if(idx<BK.length){S.sel=BK[idx].id;renderPal()}}if(e.key==='q'||e.key==='Q'){S.sel=BK[10].id;renderPal()}if(e.key==='w'||e.key==='W'){S.sel=BK[11].id;renderPal()}if(e.key==='a'||e.key==='A'){S.sel=BK[12].id;renderPal()}});
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();doSave();return}
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();doUndo();return}
+  if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();doRedo();return}
+  if(e.key==='Delete'||e.key==='Backspace'){if(S.selected.length){e.preventDefault();deleteSelected();return}}
+  if(e.key==='Escape'){S.selected=[];render();return}
+  if(e.key==='f'||e.key==='F'){if(S.selected.length){openSendToLayer();return}}
+  if(e.key==='r'||e.key==='R')setOrient(S.orient==='ns'?'ew':'ns');
+  if(e.key==='d'||e.key==='D')setTool('draw');
+  if(e.key==='e'||e.key==='E')setTool('erase');
+  if(e.key==='v'||e.key==='V')setTool('select');
+  if(e.key==='ArrowUp'){e.preventDefault();chgL(1)}
+  if(e.key==='ArrowDown'){e.preventDefault();chgL(-1)}
+  if(e.key==='+'||e.key==='=')doZoom(1);if(e.key==='-')doZoom(-1);
+  const num=parseInt(e.key);
+  if(!isNaN(num)){const idx=num===0?9:num-1;if(idx<BK.length){S.sel=BK[idx].id;renderPal()}}
+  if(e.key==='q'||e.key==='Q'){S.sel=BK[10].id;renderPal()}
+  if(e.key==='w'||e.key==='W'){S.sel=BK[11].id;renderPal()}
+  if(e.key==='a'||e.key==='A'){S.sel=BK[12].id;renderPal()}
+  if(e.key==='t'&&!e.ctrlKey){S.sel=BK[13].id;renderPal()}
+});
 
 // ====== 3D VIEWER ======
 let scene3d,camera3d,renderer3d,anim3d;
